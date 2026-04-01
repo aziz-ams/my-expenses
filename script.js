@@ -1,89 +1,114 @@
-let database = JSON.parse(localStorage.getItem("MY_EXPENSES_DB")) || [];
+let db = JSON.parse(localStorage.getItem("PRO_WALLET_DB")) || [];
+let settings = JSON.parse(localStorage.getItem("PRO_SETTINGS")) || { theme: 'light', tgToken: '', tgID: '' };
+let chart;
 
-// ضبط تاريخ اليوم تلقائياً
-document.getElementById('fDate').valueAsDate = new Date();
+// وظيفة التنقل بين الصفحات - تم إصلاحها لتعمل 100%
+function openTab(evt, tabId) {
+    // إخفاء كل الصفحات
+    const panels = document.getElementsByClassName("tab-panel");
+    for (let i = 0; i < panels.length; i++) {
+        panels[i].style.display = "none";
+        panels[i].classList.remove("active");
+    }
 
-async function processSave() {
+    // إزالة اللون النشط من الأزرار
+    const tabs = document.getElementsByClassName("tab-item");
+    for (let i = 0; i < tabs.length; i++) {
+        tabs[i].classList.remove("active");
+    }
+
+    // إظهار الصفحة المطلوبة
+    const activePanel = document.getElementById(tabId);
+    activePanel.style.display = "block";
+    activePanel.classList.add("active");
+    evt.currentTarget.classList.add("active");
+
+    // تحديث البيانات إذا دخلنا صفحة معينة
+    if(tabId === 'list-page') renderTable();
+    if(tabId === 'report-page') initChart();
+}
+
+// حفظ البيانات
+async function saveData() {
     const amt = document.getElementById('fAmt').value;
     const note = document.getElementById('fNote').value;
+    const cat = document.getElementById('fCat').value || "عام";
     const date = document.getElementById('fDate').value;
-    const cat = document.getElementById('fCat').value;
     const fileInput = document.getElementById('fFile');
-    const file = fileInput.files[0];
+    
+    if(!amt || !date) return alert("يرجى إكمال البيانات الأساسية");
 
-    if (!amt || !date) return alert("يرجى إدخال المبلغ والتاريخ");
-
-    let fileData = null;
-    let fileType = null;
-
-    if (file) {
-        fileType = file.type;
-        fileData = await new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.readAsDataURL(file);
+    let fileStr = null, fType = null;
+    if(fileInput.files[0]) {
+        fType = fileInput.files[0].type;
+        fileStr = await new Promise(r => {
+            const rd = new FileReader();
+            rd.onload = () => r(rd.result);
+            rd.readAsDataURL(fileInput.files[0]);
         });
     }
 
-    database.push({ date, note, amt: parseFloat(amt), cat, file: fileData, fileType });
-    saveAndRefresh();
-    
-    // إعادة ضبط الحقول
-    document.getElementById('fAmt').value = '';
-    document.getElementById('fNote').value = '';
-    fileInput.value = '';
-}
-
-function viewAttachment(data, type) {
-    const win = window.open();
-    if (type.includes('pdf')) {
-        win.document.write(`<html><body style="margin:0;"><iframe src="${data}" width="100%" height="100%" style="border:none;"></iframe></body></html>`);
-    } else {
-        win.document.write(`<html><body style="margin:0;display:flex;justify-content:center;align-items:center;"><img src="${data}" style="max-width:100%;height:auto;"></body></html>`);
-    }
+    db.push({ id: Date.now(), amt, note, cat, date, fileStr, fType });
+    localStorage.setItem("PRO_WALLET_DB", JSON.stringify(db));
+    alert("تم الحفظ بنجاح");
+    location.reload();
 }
 
 function renderTable() {
     const tbody = document.getElementById('dbTable');
-    tbody.innerHTML = database.slice().reverse().map((r, i) => {
-        // حساب الاندكس الحقيقي للحذف بسبب استخدام reverse
-        const realIndex = database.length - 1 - i;
-        return `
+    tbody.innerHTML = db.slice().reverse().map(item => `
         <tr>
-            <td>${r.date}</td>
-            <td>${r.note}</td>
-            <td>${r.amt}</td>
-            <td>
-                ${r.file ? `<button onclick="viewAttachment('${r.file}', '${r.fileType}')" class="btn-view">👁️</button>` : '➖'}
+            <td>${item.date}</td>
+            <td>${item.note}</td>
+            <td>${item.amt}</td>
+            <td class="actions-td">
+                <button onclick="viewFile(${item.id})"><i class="fas fa-eye"></i></button>
+                <button onclick="deleteItem(${item.id})" style="color:red"><i class="fas fa-trash"></i></button>
             </td>
-            <td><button onclick="delRecord(${realIndex})" class="btn-del">🗑️</button></td>
-        </tr>`;
-    }).join('');
+        </tr>`).join('');
 }
 
-function delRecord(index) {
-    if(confirm("هل أنت متأكد من الحذف؟")) {
-        database.splice(index, 1);
-        saveAndRefresh();
+function viewFile(id) {
+    const item = db.find(i => i.id == id);
+    if(!item.fileStr) return alert("لا يوجد مرفق");
+    const win = window.open();
+    if (item.fType.includes('pdf')) {
+        win.document.write(`<iframe src="${item.fileStr}" width="100%" height="100%"></iframe>`);
+    } else {
+        win.document.write(`<img src="${item.fileStr}" style="max-width:100%">`);
     }
 }
 
-function saveAndRefresh() {
-    localStorage.setItem("MY_EXPENSES_DB", JSON.stringify(database));
-    renderTable();
+function deleteItem(id) {
+    if(confirm("حذف العملية؟")) {
+        db = db.filter(i => i.id != id);
+        localStorage.setItem("PRO_WALLET_DB", JSON.stringify(db));
+        renderTable();
+    }
 }
 
-function downloadBackupExcel() {
-    if (database.length === 0) return alert("لا توجد بيانات");
-    let csv = "\uFEFFالتاريخ,البيان,المبلغ,التصنيف\n";
-    database.forEach(r => {
-        csv += `${r.date},${r.note},${r.amt},${r.cat}\n`;
+function toggleTheme() {
+    settings.theme = settings.theme === 'light' ? 'dark' : 'light';
+    localStorage.setItem("PRO_SETTINGS", JSON.stringify(settings));
+    document.body.className = settings.theme + '-mode';
+}
+
+function initChart() {
+    const ctx = document.getElementById('myChart').getContext('2d');
+    const cats = [...new Set(db.map(i => i.cat))];
+    const totals = cats.map(c => db.filter(i => i.cat === c).reduce((sum, i) => sum + parseFloat(i.amt), 0));
+
+    if(chart) chart.destroy();
+    chart = new Chart(ctx, {
+        type: 'doughnut',
+        data: { labels: cats, datasets: [{ data: totals, backgroundColor: ['#6366f1', '#f59e0b', '#10b981', '#ef4444'] }] }
     });
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "مصاريفي.csv";
-    link.click();
 }
 
-renderTable();
+// تهيئة أولية
+document.addEventListener('DOMContentLoaded', () => {
+    document.body.className = settings.theme + '-mode';
+    document.getElementById('fDate').valueAsDate = new Date();
+    // إظهار صفحة الإضافة افتراضياً
+    document.getElementById('add-page').style.display = "block";
+});
