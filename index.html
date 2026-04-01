@@ -2,73 +2,85 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>محفظتي برو</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>مسجل المصروفات اليومية</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="light-mode">
     <div class="app-shell">
-        <div class="tab-bar">
-            <button class="tab-item active" onclick="openTab(event, 'add-page')"><i class="fas fa-plus"></i><span>إضافة</span></button>
-            <button class="tab-item" onclick="openTab(event, 'list-page')"><i class="fas fa-history"></i><span>العمليات</span></button>
-            <button class="tab-item" onclick="openTab(event, 'report-page')"><i class="fas fa-chart-pie"></i><span>التقارير</span></button>
-            <button class="tab-item" onclick="openTab(event, 'settings-page')"><i class="fas fa-cog"></i><span>الإعدادات</span></button>
-        </div>
+        <nav class="navbar">
+            <div class="logo"><i class="fas fa-wallet"></i> <span>مسجل المصروفات اليومية</span></div>
+        </nav>
 
         <main class="content">
+            <div class="tab-bar">
+                <button class="tab-item active" onclick="openTab(event, 'add-page')">
+                    <i class="fas fa-plus-circle"></i><span>إضافة</span>
+                </button>
+                <button class="tab-item" onclick="openTab(event, 'list-page')">
+                    <i class="fas fa-list-ul"></i><span>العمليات</span>
+                </button>
+                <button class="tab-item" onclick="openTab(event, 'report-page')">
+                    <i class="fas fa-chart-bar"></i><span>التقارير</span>
+                </button>
+                <button class="tab-item" onclick="openTab(event, 'settings-page')">
+                    <i class="fas fa-user-cog"></i><span>الإعدادات</span>
+                </button>
+            </div>
+
             <div id="add-page" class="tab-panel active">
                 <div class="glass-card">
-                    <h3 class="page-title">تسجيل عملية جديدة</h3>
+                    <h3 class="page-title">تسجيل مبلغ</h3>
                     <div class="amount-input-box">
                         <input type="number" id="fAmt" placeholder="0.00" inputmode="decimal">
-                        <span>SAR</span>
+                        <span class="curr">SAR</span>
                     </div>
                     <div class="input-grid">
                         <div class="field"><label>البيان</label><input type="text" id="fNote"></div>
-                        <div class="field"><label>التصنيف</label><input type="text" id="fCat"></div>
+                        <div class="field"><label>التصنيف</label><input type="text" id="fCat" placeholder="مثلاً: طعام"></div>
                         <div class="field"><label>التاريخ</label><input type="date" id="fDate"></div>
                     </div>
                     <div class="upload-area">
                         <input type="file" id="fFile" hidden onchange="handleFileSelect()">
-                        <label for="fFile" id="file-label"><i class="fas fa-paperclip"></i> ارفق فاتورة (صورة/PDF)</label>
+                        <label for="fFile" id="file-label"><i class="fas fa-cloud-upload-alt"></i> إرفاق فاتورة (صورة/PDF)</label>
                     </div>
-                    <button class="btn-primary" onclick="saveData()">حفظ العملية</button>
+                    <button class="btn-primary" onclick="saveData()">حفظ العملية الآن ✅</button>
                 </div>
             </div>
 
-            <div id="list-page" class="tab-panel">
+            <div id="list-page" class="tab-panel" style="display:none;">
                 <div class="glass-card">
                     <h3 class="page-title">العمليات المحفوظة</h3>
                     <div class="table-wrapper">
                         <table>
-                            <thead><tr><th>التاريخ</th><th>البيان</th><th>المبلغ</th><th>إجراءات</th></tr></thead>
+                            <thead><tr><th>التاريخ</th><th>البيان</th><th>المبلغ</th><th>إجراء</th></tr></thead>
                             <tbody id="dbTable"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <div id="report-page" class="tab-panel">
+            <div id="report-page" class="tab-panel" style="display:none;">
                 <div class="glass-card">
-                    <h3 class="page-title">تحليل المصروفات</h3>
+                    <h3 class="page-title">تحليل مالي</h3>
                     <div style="max-width: 300px; margin: auto;">
                         <canvas id="myChart"></canvas>
                     </div>
                     <div class="report-actions">
-                        <button class="btn-excel" onclick="exportExcel()"><i class="fas fa-file-excel"></i> تحميل إكسل</button>
+                        <button class="btn-excel" onclick="exportExcel()"><i class="fas fa-file-excel"></i> تصدير Excel</button>
                         <button class="btn-tg" onclick="sendToTelegram()"><i class="fab fa-telegram-plane"></i> إرسال للتليجرام</button>
                     </div>
                 </div>
             </div>
 
-            <div id="settings-page" class="tab-panel">
+            <div id="settings-page" class="tab-panel" style="display:none;">
                 <div class="glass-card">
-                    <h3 class="page-title">الإعدادات</h3>
+                    <h3 class="page-title">إعدادات النظام</h3>
                     <div class="setting-item">
-                        <label>الوضع الداكن</label>
-                        <button class="btn-toggle" onclick="toggleTheme()">تغيير النمط</button>
+                        <label>الوضع الليلي 🌓</label>
+                        <button class="btn-toggle" onclick="toggleTheme()">تبديل الوضع</button>
                     </div>
                     <div class="setting-item">
                         <label>Telegram Bot Token</label>
@@ -78,7 +90,7 @@
                         <label>Telegram Chat ID</label>
                         <input type="text" id="tgID">
                     </div>
-                    <button class="btn-primary" onclick="saveSettings()">حفظ الإعدادات</button>
+                    <button class="btn-primary" onclick="saveSettings()">حفظ الإعدادات ⚙️</button>
                 </div>
             </div>
         </main>
