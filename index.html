@@ -3,84 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>مسجل المصروفات اليومية</title>
+    <title>محفظتي برو ⚡</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
 </head>
 <body class="light-mode">
-
-    <div class="app-shell">
-        <header class="main-header">
-            <div class="logo">💰 مسجل المصروفات</div>
-        </header>
-
-        <main class="content">
-            <section id="add-page" class="tab-panel active">
+    <div class="app">
+        <main class="main-view">
+            <section id="add-page" class="view active">
+                <div class="hero"><h1>إضافة مصروف 💸</h1></div>
                 <div class="glass-card">
-                    <div class="amount-box">
-                        <input type="number" id="fAmt" placeholder="0.00" inputmode="decimal">
+                    <div class="amt-input">
+                        <input type="number" id="fAmt" placeholder="0" inputmode="decimal">
                         <span>SAR</span>
                     </div>
-                    <div class="form-grid">
-                        <div class="input-field"><label>البيان</label><input type="text" id="fNote" placeholder="مثلاً: غداء، بنزين"></div>
-                        <div class="input-field"><label>التصنيف</label><input type="text" id="fCat" placeholder="طعام، سيارة..."></div>
-                        <div class="input-field"><label>التاريخ</label><input type="date" id="fDate"></div>
+                    <div class="form-group">
+                        <div class="field"><i class="fas fa-pen"></i><input type="text" id="fNote" placeholder="البيان"></div>
+                        <div class="field"><i class="fas fa-tag"></i><input type="text" id="fCat" placeholder="التصنيف"></div>
+                        <div class="field"><i class="fas fa-calendar"></i><input type="date" id="fDate"></div>
                     </div>
-                    <div class="file-box">
-                        <input type="file" id="fFile" hidden onchange="handleFileUI()">
-                        <label for="fFile" id="file-label"><i class="fas fa-camera"></i> أرفق صورة الفاتورة</label>
+                    
+                    <div class="upload-section">
+                        <input type="file" id="fFile" hidden accept="image/*,.pdf" onchange="handleFileUI()">
+                        <label for="fFile" class="upload-btn" id="file-label">
+                            <i class="fas fa-file-invoice"></i>
+                            <span>إرفاق فاتورة (Image/PDF)</span>
+                        </label>
                     </div>
-                    <button class="save-btn" onclick="saveData()">حفظ فوري ⚡</button>
+
+                    <button class="btn-main" onclick="saveData()">حفظ فوري ⚡</button>
                 </div>
             </section>
 
-            <section id="list-page" class="tab-panel">
-                <div class="glass-card">
-                    <h3>سجل العمليات</h3>
-                    <div class="scroll-table">
-                        <table>
-                            <thead><tr><th>التاريخ</th><th>البيان</th><th>المبلغ</th><th>-</th></tr></thead>
-                            <tbody id="dbTable"></tbody>
-                        </table>
-                    </div>
+            <section id="list-page" class="view">
+                <h2 class="view-title">السجل الزمني</h2>
+                <div id="list-container" class="list-wrapper"></div>
+            </section>
+
+            <section id="report-page" class="view">
+                <h2 class="view-title">التقارير</h2>
+                <div class="glass-card chart-card"><canvas id="myChart"></canvas></div>
+                <div class="action-grid">
+                    <button class="action-btn excel" onclick="exportExcel()"><i class="fas fa-file-excel"></i> إكسل</button>
+                    <button class="action-btn telegram" onclick="sendToTelegram()"><i class="fab fa-telegram-plane"></i> تليجرام</button>
                 </div>
             </section>
 
-            <section id="report-page" class="tab-panel">
+            <section id="settings-page" class="view">
+                <h2 class="view-title">الإعدادات</h2>
                 <div class="glass-card">
-                    <h3>تحليل المصروفات</h3>
-                    <div class="chart-wrapper"><canvas id="myChart"></canvas></div>
-                    <div class="actions-grid">
-                        <button onclick="exportExcel()" class="btn-ex"><i class="fas fa-file-excel"></i> إكسل</button>
-                        <button onclick="sendToTelegram()" class="btn-tg"><i class="fab fa-telegram-plane"></i> تليجرام</button>
-                    </div>
-                </div>
-            </section>
-
-            <section id="settings-page" class="tab-panel">
-                <div class="glass-card">
-                    <h3>الإعدادات</h3>
-                    <button class="theme-btn" onclick="toggleTheme()">تغيير الوضع (ليلي/نهاري) 🌓</button>
-                    <div class="form-grid" style="margin-top:20px">
-                        <input type="password" id="tgToken" placeholder="Telegram Bot Token">
-                        <input type="text" id="tgID" placeholder="Telegram Chat ID">
-                    </div>
-                    <button class="save-btn" onclick="saveSettings()">حفظ الإعدادات</button>
+                    <div class="row" onclick="toggleTheme()"><span>الوضع الليلي</span><div id="theme-indicator">🌑</div></div>
+                    <hr>
+                    <input type="password" id="tgToken" class="flat-input" placeholder="Bot Token">
+                    <input type="text" id="tgID" class="flat-input" placeholder="Chat ID">
+                    <button class="btn-main" onclick="saveSettings()">حفظ</button>
                 </div>
             </section>
         </main>
 
-        <nav class="tab-bar">
-            <button class="tab-item active" onclick="openTab(event, 'add-page')"><i class="fas fa-plus"></i><span>إضافة</span></button>
-            <button class="tab-item" onclick="openTab(event, 'list-page')"><i class="fas fa-history"></i><span>السجل</span></button>
-            <button class="tab-item" onclick="openTab(event, 'report-page')"><i class="fas fa-chart-pie"></i><span>تقارير</span></button>
-            <button class="tab-item" onclick="openTab(event, 'settings-page')"><i class="fas fa-cog"></i><span>ضبط</span></button>
+        <nav class="nav-bar">
+            <button class="nav-btn active" onclick="showView('add-page', this)"><i class="fas fa-plus"></i><span>إضافة</span></button>
+            <button class="nav-btn" onclick="showView('list-page', this)"><i class="fas fa-receipt"></i><span>السجل</span></button>
+            <button class="nav-btn" onclick="showView('report-page', this)"><i class="fas fa-chart-pie"></i><span>تقارير</span></button>
+            <button class="nav-btn" onclick="showView('settings-page', this)"><i class="fas fa-cog"></i><span>ضبط</span></button>
         </nav>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>
