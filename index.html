@@ -7,104 +7,78 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
 </head>
 <body class="light-mode">
 
     <div class="app-shell">
-        <nav class="tab-bar">
-            <button class="tab-item active" onclick="openTab(event, 'add-page')">
-                <i class="fas fa-plus-circle"></i><span>إضافة</span>
-            </button>
-            <button class="tab-item" onclick="openTab(event, 'list-page')">
-                <i class="fas fa-wallet"></i><span>العمليات</span>
-            </button>
-            <button class="tab-item" onclick="openTab(event, 'report-page')">
-                <i class="fas fa-chart-pie"></i><span>التقارير</span>
-            </button>
-            <button class="tab-item" onclick="openTab(event, 'settings-page')">
-                <i class="fas fa-user-cog"></i><span>الإعدادات</span>
-            </button>
-        </nav>
+        <header class="main-header">
+            <div class="logo">💰 مسجل المصروفات</div>
+        </header>
 
         <main class="content">
             <section id="add-page" class="tab-panel active">
                 <div class="glass-card">
-                    <h2 class="page-title">تسجيل عملية جديدة</h2>
-                    <div class="amount-input-box">
+                    <div class="amount-box">
                         <input type="number" id="fAmt" placeholder="0.00" inputmode="decimal">
-                        <span class="curr">SAR</span>
+                        <span>SAR</span>
                     </div>
-                    <div class="input-grid">
-                        <div class="field"><label>البيان (اسم العملية)</label><input type="text" id="fNote"></div>
-                        <div class="field"><label>التصنيف</label><input type="text" id="fCat" placeholder="مثلاً: سكن، طعام"></div>
-                        <div class="field"><label>التاريخ</label><input type="date" id="fDate"></div>
+                    <div class="form-grid">
+                        <div class="input-field"><label>البيان</label><input type="text" id="fNote" placeholder="مثلاً: غداء، بنزين"></div>
+                        <div class="input-field"><label>التصنيف</label><input type="text" id="fCat" placeholder="طعام، سيارة..."></div>
+                        <div class="input-field"><label>التاريخ</label><input type="date" id="fDate"></div>
                     </div>
-                    <div class="upload-area">
-                        <input type="file" id="fFile" hidden onchange="handleFileSelect()">
-                        <label for="fFile" id="file-label">
-                            <i class="fas fa-cloud-upload-alt"></i> ارفق فاتورة (صورة/PDF)
-                        </label>
+                    <div class="file-box">
+                        <input type="file" id="fFile" hidden onchange="handleFileUI()">
+                        <label for="fFile" id="file-label"><i class="fas fa-camera"></i> أرفق صورة الفاتورة</label>
                     </div>
-                    <button class="btn-primary" onclick="saveData()">حفظ العملية ✅</button>
+                    <button class="save-btn" onclick="saveData()">حفظ فوري ⚡</button>
                 </div>
             </section>
 
-            <section id="list-page" class="tab-panel" style="display:none;">
+            <section id="list-page" class="tab-panel">
                 <div class="glass-card">
-                    <h2 class="page-title">العمليات المحفوظة</h2>
-                    <div class="table-wrapper">
+                    <h3>سجل العمليات</h3>
+                    <div class="scroll-table">
                         <table>
-                            <thead>
-                                <tr>
-                                    <th>التاريخ</th>
-                                    <th>البيان</th>
-                                    <th>المبلغ</th>
-                                    <th>إجراءات</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>التاريخ</th><th>البيان</th><th>المبلغ</th><th>-</th></tr></thead>
                             <tbody id="dbTable"></tbody>
                         </table>
                     </div>
                 </div>
             </section>
 
-            <section id="report-page" class="tab-panel" style="display:none;">
+            <section id="report-page" class="tab-panel">
                 <div class="glass-card">
-                    <h2 class="page-title">تحليل المصروفات</h2>
-                    <div class="chart-container">
-                        <canvas id="myChart"></canvas>
-                    </div>
-                    <div class="report-actions">
-                        <button class="btn-excel" onclick="exportExcel()"><i class="fas fa-file-excel"></i> تحميل إكسل (Excel)</button>
-                        <button class="btn-tg" onclick="sendToTelegram()"><i class="fab fa-telegram-plane"></i> إرسال للتليجرام</button>
+                    <h3>تحليل المصروفات</h3>
+                    <div class="chart-wrapper"><canvas id="myChart"></canvas></div>
+                    <div class="actions-grid">
+                        <button onclick="exportExcel()" class="btn-ex"><i class="fas fa-file-excel"></i> إكسل</button>
+                        <button onclick="sendToTelegram()" class="btn-tg"><i class="fab fa-telegram-plane"></i> تليجرام</button>
                     </div>
                 </div>
             </section>
 
-            <section id="settings-page" class="tab-panel" style="display:none;">
+            <section id="settings-page" class="tab-panel">
                 <div class="glass-card">
-                    <h2 class="page-title">الإعدادات</h2>
-                    <div class="setting-item">
-                        <label>الوضع الليلي (Dark Mode)</label>
-                        <button class="btn-toggle" onclick="toggleTheme()">تبديل 🌓</button>
+                    <h3>الإعدادات</h3>
+                    <button class="theme-btn" onclick="toggleTheme()">تغيير الوضع (ليلي/نهاري) 🌓</button>
+                    <div class="form-grid" style="margin-top:20px">
+                        <input type="password" id="tgToken" placeholder="Telegram Bot Token">
+                        <input type="text" id="tgID" placeholder="Telegram Chat ID">
                     </div>
-                    <div class="setting-item">
-                        <label>لون هوية التطبيق</label>
-                        <input type="color" id="themeColor" onchange="updateThemeColor(this.value)">
-                    </div>
-                    <hr>
-                    <div class="field">
-                        <label>Telegram Bot Token</label>
-                        <input type="password" id="tgToken" placeholder="أدخل التوكن هنا">
-                    </div>
-                    <div class="field">
-                        <label>Telegram Chat ID</label>
-                        <input type="text" id="tgID" placeholder="أدخل الآيدي هنا">
-                    </div>
-                    <button class="btn-primary" style="margin-top:15px" onclick="saveSettings()">حفظ الإعدادات ⚙️</button>
+                    <button class="save-btn" onclick="saveSettings()">حفظ الإعدادات</button>
                 </div>
             </section>
         </main>
+
+        <nav class="tab-bar">
+            <button class="tab-item active" onclick="openTab(event, 'add-page')"><i class="fas fa-plus"></i><span>إضافة</span></button>
+            <button class="tab-item" onclick="openTab(event, 'list-page')"><i class="fas fa-history"></i><span>السجل</span></button>
+            <button class="tab-item" onclick="openTab(event, 'report-page')"><i class="fas fa-chart-pie"></i><span>تقارير</span></button>
+            <button class="tab-item" onclick="openTab(event, 'settings-page')"><i class="fas fa-cog"></i><span>ضبط</span></button>
+        </nav>
     </div>
 
     <script src="script.js"></script>
