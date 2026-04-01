@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مصروفات شهرية</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-mode">
+
+<div id="mainApp">
+    <nav class="navbar">
+        <div class="logo-area">
+            <div class="logo-text">تسجيل <span>مصروفاتك الشهرية</span></div>
+        </div>
+        <ul class="nav-menu">
+            <li class="active" onclick="changeTab('addTab', this)">✨ إضافة</li>
+            <li onclick="changeTab('archiveTab', this)">📂 الأرشيف</li>
+            <li onclick="changeTab('galleryTab', this)">🖼️ الصور</li>
+            <li onclick="changeTab('settingsTab', this)">⚙️ الإعدادات</li>
+        </ul>
+        <button id="themeToggle" class="btn-theme" onclick="toggleTheme()">🌙</button>
+    </nav>
+
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card"><p>إجمالي المصاريف</p><h2 id="statTotal">0.00</h2></div>
+            <div class="stat-card highlight"><p>مصاريف الشهر</p><h2 id="statMonth">0.00</h2></div>
+            <div class="stat-card"><p>عدد العمليات</p><h2 id="statCount">0</h2></div>
+        </div>
+
+        <div id="addTab" class="tab-content active panel">
+            <h2 class="panel-title">تسجيل مصروف جديد</h2>
+            <div class="grid-form">
+                <div class="field-group">
+                    <label>التاريخ</label>
+                    <input type="date" id="fDate"> 
+                </div>
+                <div class="field-group"><label>البيان</label><input type="text" id="fNote" placeholder="وصف العملية..."></div>
+                <div class="field-group"><label>المبلغ (SAR)</label><input type="number" id="fAmt" placeholder="0.00"></div>
+                <div class="field-group"><label>التصنيف</label><input type="text" id="fCat" placeholder="وقود، طعام..."></div>
+                <div class="field-group full-width"><label>صورة الفاتورة (اختياري)</label><input type="file" id="fFile" accept="image/*"></div>
+            </div>
+            <button class="btn main-btn" onclick="processSave()">حفظ الفاتورة الآن</button>
+        </div>
+
+        <div id="archiveTab" class="tab-content panel">
+            <div class="archive-header">
+                <h2 class="panel-title">سجل العمليات</h2>
+                <button class="btn-outline" onclick="exportToExcel()">📊 تصدير Excel</button>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr><th>#</th><th>التاريخ</th><th>البيان / التصنيف</th><th>المبلغ</th><th>الصورة</th><th>حذف</th></tr>
+                    </thead>
+                    <tbody id="dbTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="galleryTab" class="tab-content panel">
+            <h2 class="panel-title text-center">معرض الفواتير</h2>
+            <div id="imageGallery" class="gallery-grid"></div>
+        </div>
+
+        <div id="settingsTab" class="tab-content panel text-center">
+            <h2 class="panel-title">إدارة البيانات</h2>
+            <div class="settings-actions">
+                <button class="btn" onclick="downloadBackup()">📥 نسخة احتياطية</button>
+                <button class="btn-outline" onclick="document.getElementById('importFile').click()">📤 استعادة بيانات</button>
+                <input type="file" id="importFile" style="display:none" onchange="importBackup(this)">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="helper.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
