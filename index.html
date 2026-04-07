@@ -2,73 +2,226 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>محفظتي برو ⚡</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام قبس الأمجاد الإداري</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body class="light-mode">
-    <div class="app">
-        <main class="main-view">
-            <section id="add-page" class="view active">
-                <div class="hero"><h1>إضافة مصروف 💸</h1></div>
-                <div class="glass-card">
-                    <div class="amt-input">
-                        <input type="number" id="fAmt" placeholder="0" inputmode="decimal">
-                        <span>SAR</span>
-                    </div>
-                    <div class="form-group">
-                        <div class="field"><i class="fas fa-pen"></i><input type="text" id="fNote" placeholder="البيان"></div>
-                        <div class="field"><i class="fas fa-tag"></i><input type="text" id="fCat" placeholder="التصنيف"></div>
-                        <div class="field"><i class="fas fa-calendar"></i><input type="date" id="fDate"></div>
-                    </div>
-                    
-                    <div class="upload-section">
-                        <input type="file" id="fFile" hidden accept="image/*,.pdf" onchange="handleFileUI()">
-                        <label for="fFile" class="upload-btn" id="file-label">
-                            <i class="fas fa-file-invoice"></i>
-                            <span>إرفاق فاتورة (Image/PDF)</span>
-                        </label>
-                    </div>
+<body class="dark-theme" id="appBody">
 
-                    <button class="btn-main" onclick="saveData()">حفظ فوري ⚡</button>
-                </div>
-            </section>
+    <header class="topbar">
+        <div class="topbar-right">
+            <button class="menu-toggle" onclick="app.toggleMenu()">☰</button>
+            <h1 class="logo-title" id="topbarTitle">🏗️ نظام قبس الأمجاد</h1>
+        </div>
+    </header>
 
-            <section id="list-page" class="view">
-                <h2 class="view-title">السجل الزمني</h2>
-                <div id="list-container" class="list-wrapper"></div>
-            </section>
+    <div class="overlay" id="menuOverlay" onclick="app.toggleMenu()"></div>
 
-            <section id="report-page" class="view">
-                <h2 class="view-title">التقارير</h2>
-                <div class="glass-card chart-card"><canvas id="myChart"></canvas></div>
-                <div class="action-grid">
-                    <button class="action-btn excel" onclick="exportExcel()"><i class="fas fa-file-excel"></i> إكسل</button>
-                    <button class="action-btn telegram" onclick="sendToTelegram()"><i class="fab fa-telegram-plane"></i> تليجرام</button>
-                </div>
-            </section>
-
-            <section id="settings-page" class="view">
-                <h2 class="view-title">الإعدادات</h2>
-                <div class="glass-card">
-                    <div class="row" onclick="toggleTheme()"><span>الوضع الليلي</span><div id="theme-indicator">🌑</div></div>
-                    <hr>
-                    <input type="password" id="tgToken" class="flat-input" placeholder="Bot Token">
-                    <input type="text" id="tgID" class="flat-input" placeholder="Chat ID">
-                    <button class="btn-main" onclick="saveSettings()">حفظ</button>
-                </div>
-            </section>
-        </main>
-
-        <nav class="nav-bar">
-            <button class="nav-btn active" onclick="showView('add-page', this)"><i class="fas fa-plus"></i><span>إضافة</span></button>
-            <button class="nav-btn" onclick="showView('list-page', this)"><i class="fas fa-receipt"></i><span>السجل</span></button>
-            <button class="nav-btn" onclick="showView('report-page', this)"><i class="fas fa-chart-pie"></i><span>تقارير</span></button>
-            <button class="nav-btn" onclick="showView('settings-page', this)"><i class="fas fa-cog"></i><span>ضبط</span></button>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">القائمة الرئيسية</div>
+        <nav class="sidebar-nav">
+            <button class="nav-item active" onclick="app.switchPage('p0')">🏠 الصفحة الرئيسية</button>
+            <button class="nav-item" onclick="app.switchPage('p1')">1️⃣ المشاريع القائمة</button>
+            <button class="nav-item" onclick="app.switchPage('p8')">👥 إدارة الموردين</button>
+            <button class="nav-item" onclick="app.switchPage('p2')">2️⃣ إدخال المصاريف</button>
+            <button class="nav-item" onclick="app.switchPage('p7')">3️⃣ استرداد الضريبة</button>
+            <button class="nav-item" onclick="app.switchPage('p3')">4️⃣ لوحة التقارير</button>
+            <button class="nav-item" onclick="app.switchPage('p4')">5️⃣ البحث والتعديل</button>
+            <button class="nav-item" onclick="app.switchPage('p5')">6️⃣ استخراج الملفات</button>
+            <button class="nav-item" onclick="app.switchPage('p6')">⚙️ الإعدادات</button>
         </nav>
+    </aside>
+
+    <main class="content">
+        <section id="p0" class="page active">
+            <div class="welcome-container">
+                <img id="welcomeLogo" src="" alt="الشعار" style="display: none;">
+                <h1 id="welcomeTitle">مرحباً بك في النظام</h1>
+                <p id="welcomeVision" class="vision-text">جاري تحميل البيانات...</p>
+            </div>
+        </section>
+
+        <section id="p1" class="page">
+            <h2 class="page-title">إدارة المشاريع</h2>
+            <div class="card grid-2">
+                <div class="form-group"><label>اسم المشروع</label><input type="text" id="projName"></div>
+                <div class="form-group"><label>اسم المقاول</label><input type="text" id="projContractor"></div>
+                <div class="span-2"><button class="btn btn-primary w-100" onclick="app.projects.add()">حفظ المشروع</button></div>
+            </div>
+            <div class="card table-responsive">
+                <table>
+                    <thead><tr><th>المشروع</th><th>المقاول</th><th>التاريخ</th><th>إجراء</th></tr></thead>
+                    <tbody id="projectsBody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="p8" class="page">
+            <h2 class="page-title">إدارة الموردين والشركات</h2>
+            <div class="card grid-2">
+                <div class="form-group"><label>اسم المورد</label><input type="text" id="venName" placeholder="مثال: شركة مصدر لمواد البناء"></div>
+                <div class="form-group"><label>الرقم المميز للمورد (الضريبي)</label><input type="text" id="venTaxNum" placeholder="مثال: 300000000000003"></div>
+                <div class="span-2"><button class="btn btn-primary w-100" onclick="app.vendors.add()">حفظ المورد</button></div>
+            </div>
+            <div class="card table-responsive">
+                <table>
+                    <thead><tr><th>اسم المورد</th><th>الرقم المميز (الضريبي)</th><th>إجراء</th></tr></thead>
+                    <tbody id="vendorsBody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="p2" class="page">
+            <h2 class="page-title">تسجيل فاتورة مصاريف</h2>
+            <div class="card">
+                <div class="entry-mode-toggle">
+                    <button class="btn btn-primary active" id="btnManual" onclick="app.expenses.setMode('manual')">تسجيل يدوي ✍️</button>
+                    <button class="btn" id="btnAuto" style="background:#475569; color:#fff;" onclick="app.expenses.setMode('auto')">تسجيل تلقائي (AI) 📸</button>
+                </div>
+
+                <div id="autoUploadArea" class="hidden" style="border: 2px dashed var(--primary-color); padding: 30px; text-align: center; border-radius: 10px; margin-bottom: 20px;">
+                    <label style="font-size: 16px; color: var(--primary-color); cursor: pointer;">
+                        اضغط هنا لرفع صورة الفاتورة للتحليل بالذكاء الاصطناعي
+                        <input type="file" hidden accept="image/*" onchange="app.expenses.processAI(this)">
+                    </label>
+                    <p id="aiStatus" style="margin-top:10px; color: var(--text-muted); font-weight:bold;"></p>
+                </div>
+
+                <div class="grid-3">
+                    <div class="form-group"><label>المشروع</label><select id="expProject"></select></div>
+                    <div class="form-group"><label>التسلسل</label><input type="text" id="expSerial" readonly class="input-readonly"></div>
+                    <div class="form-group">
+                        <label>التصنيف</label>
+                        <select id="expCat" onchange="app.expenses.handleCategoryChange()"></select>
+                        <input type="text" id="expCustomCat" class="hidden mt-10" placeholder="اكتب التصنيف الخاص بك...">
+                    </div>
+                </div>
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label>المورد (اسم الشركة)</label>
+                        <input type="text" id="expVendor" list="vendorsList" onchange="app.expenses.autoFillVendor()" autocomplete="off">
+                        <datalist id="vendorsList"></datalist>
+                    </div>
+                    <div class="form-group"><label>الرقم المميز للمورد (الضريبي)</label><input type="text" id="expTaxNum"></div>
+                    <div class="form-group"><label>رقم الفاتورة</label><input type="text" id="expInvNum"></div>
+                </div>
+                <div class="grid-3">
+                    <div class="form-group"><label>تاريخ الفاتورة</label><input type="date" id="expDate"></div>
+                    <div class="form-group"><label>المبلغ الإجمالي</label><input type="number" id="expAmount" step="0.01" oninput="app.expenses.calculateVAT()"></div>
+                    <div class="form-group"><label>ضريبة القيمة المضافة 15%</label><input type="number" id="expVat" step="0.01" class="input-readonly" readonly></div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>طريقة الدفع</label>
+                        <select id="expPayment">
+                            <option value="تحويل بنكي">تحويل بنكي</option><option value="دفع نقدي">دفع نقدي (كاش)</option><option value="بطاقة شبكة">بطاقة شبكة / مدى</option><option value="آجل">آجل</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>مرفق الفاتورة</label><input type="file" id="expFile" accept="image/*,.pdf"></div>
+                </div>
+                <div class="form-group"><label>الملاحظات / وصف المنتج أو الخدمة</label><textarea id="expDesc" rows="2"></textarea></div>
+                <button class="btn btn-primary w-100" onclick="app.expenses.save()">ترحيل وحفظ الفاتورة</button>
+            </div>
+        </section>
+
+        <section id="p7" class="page">
+            <h2 class="page-title">تقرير استرداد الضريبة (الزكاة والدخل)</h2>
+            <div class="card mb-20">
+                <button class="btn btn-success" onclick="app.taxRefund.exportExcel()">تصدير Excel (ZATCA) 📗</button>
+            </div>
+            <div class="card table-responsive">
+                <table>
+                    <thead>
+                        <tr><th>رقم الفاتورة</th><th>المورد</th><th>الرقم المميز (الضريبي)</th><th>التاريخ</th><th>الإجمالي</th><th style="color: var(--danger-color);">مبلغ الضريبة</th><th>الوصف</th><th>المشروع</th></tr>
+                    </thead>
+                    <tbody id="taxBody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="p3" class="page">
+            <h2 class="page-title">الملخص المالي والمرئي</h2>
+            <div class="grid-2">
+                <div class="card"><h3>حسب المشروع</h3><canvas id="chartProjects"></canvas></div>
+                <div class="card"><h3>حسب التصنيف</h3><canvas id="chartCategories"></canvas></div>
+            </div>
+        </section>
+
+        <section id="p4" class="page">
+            <h2 class="page-title">السجل والتعديل</h2>
+            <div class="card grid-2">
+                <div class="form-group"><label>بحث عام</label><input type="text" id="searchInput" placeholder="اكتب للبحث..." onkeyup="app.expenses.search()"></div>
+                <div class="form-group" style="align-self: end;"><button class="btn btn-primary w-100" onclick="app.expenses.resequence()">ترتيب التسلسل تلقائياً 🔄</button></div>
+            </div>
+            <div class="card table-responsive">
+                <table>
+                    <thead><tr><th>التسلسل</th><th>المورد</th><th>التاريخ</th><th>الإجمالي</th><th>طريقة الدفع</th><th>إجراءات</th></tr></thead>
+                    <tbody id="searchBody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="p5" class="page">
+            <h2 class="page-title">تصدير التقارير المتقدمة</h2>
+            <div class="card">
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>نوع التقرير</label>
+                        <select id="reportPeriod" onchange="app.exportData.toggleCustomMonths()">
+                            <option value="year">سنوي (كل البيانات)</option><option value="half">نصف سنوي</option><option value="quarter">ربع سنوي</option><option value="custom">تحديد أشهر مخصصة</option>
+                        </select>
+                    </div>
+                    <div id="customMonthsArea" class="form-group hidden" style="display: flex; gap: 10px;">
+                        <div style="flex:1;"><label>من شهر</label><select id="startMonth"></select></div>
+                        <div style="flex:1;"><label>إلى شهر</label><select id="endMonth"></select></div>
+                    </div>
+                </div>
+                <div class="grid-2 mt-20">
+                    <button class="btn btn-success" onclick="app.exportData.excel()">تصدير Excel 📗</button>
+                    <button class="btn btn-danger" onclick="app.exportData.pdf()">تصدير PDF 📄</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="p6" class="page">
+            <h2 class="page-title">إعدادات النظام</h2>
+            <div class="card">
+                <div class="grid-2">
+                    <div class="form-group"><label>مظهر النظام</label><select id="themeSelect" onchange="app.settings.changeThemePreview()"><option value="dark-theme">ليلي (Dark)</option><option value="light-theme">نهاري (Light)</option></select></div>
+                    <div class="form-group"><label>شعار المؤسسة</label><input type="file" id="logoUpload" accept="image/*" onchange="app.settings.uploadLogo(this)"></div>
+                </div>
+                <hr style="border-color: var(--border-color); margin: 20px 0;">
+                <div class="form-group"><label>اسم المؤسسة</label><input type="text" id="setCompanyName"></div>
+                <div class="form-group"><label>الرؤية</label><textarea id="setVision" rows="3"></textarea></div>
+                <div class="grid-2 mt-20">
+                    <button class="btn btn-primary" onclick="app.settings.generateAI()">توليد رؤية AI ✨</button>
+                    <button class="btn btn-success" onclick="app.settings.saveAll()">حفظ الإعدادات 💾</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h3 style="color: var(--primary-color); margin-bottom: 15px;">تعديل الفاتورة</h3>
+            <input type="hidden" id="editId">
+            <div class="grid-2">
+                <div class="form-group"><label>التسلسل</label><input type="text" id="editSerial"></div>
+                <div class="form-group"><label>المبلغ</label><input type="number" id="editAmount" step="0.01"></div>
+            </div>
+            <div class="form-group"><label>المورد</label><input type="text" id="editVendor"></div>
+            <div class="form-group"><label>التاريخ</label><input type="date" id="editDate"></div>
+            <div class="grid-2 mt-20">
+                <button class="btn btn-success" onclick="app.expenses.update()">حفظ التعديل</button>
+                <button class="btn btn-danger" onclick="document.getElementById('editModal').classList.remove('active')">إلغاء</button>
+            </div>
+        </div>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>
